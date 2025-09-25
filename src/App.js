@@ -1,6 +1,92 @@
 import { useState, useEffect } from "react";
 import DropdownMenu from "./components/DropdownMenu";
 
+const detailsData = [
+  { label: "Feels Like", value: "30°" },
+  { label: "Humidity", value: "22%" },
+  { label: "Wind", value: "5 km/h" },
+  { label: "Precipitation", value: "0 mm" },
+];
+
+const DailyForecastData = [
+  {
+    day: "Sat",
+    icon: "./assets/images/icon-fog.webp",
+    temp: {
+      max: "30°",
+      min: "20°",
+    },
+  },
+  {
+    day: "Sun",
+    icon: "./assets/images/icon-sunny.webp",
+    temp: {
+      max: "30°",
+      min: "20°",
+    },
+  },
+  {
+    day: "Mon",
+    icon: "./assets/images/icon-snow.webp",
+    temp: {
+      max: "30°",
+      min: "20°",
+    },
+  },
+  {
+    day: "Tue",
+    icon: "./assets/images/icon-storm.webp",
+    temp: {
+      max: "30°",
+      min: "20°",
+    },
+  },
+  {
+    day: "Wed",
+    icon: "./assets/images/icon-rain.webp",
+    temp: {
+      max: "30°",
+      min: "20°",
+    },
+  },
+  {
+    day: "Thu",
+    icon: "./assets/images/icon-partly-cloudy.webp",
+    temp: {
+      max: "30°",
+      min: "20°",
+    },
+  },
+  {
+    day: "Fri",
+    icon: "./assets/images/icon-overcast.webp",
+    temp: {
+      max: "30°",
+      min: "20°",
+    },
+  },
+];
+
+const hoursTemp = [
+  { hour: "7 PM", temp: "30°", img: "./assets/images/icon-sunny.webp" },
+  { hour: "8 PM", temp: "30°", img: "./assets/images/icon-sunny.webp" },
+  { hour: "9 PM", temp: "30°", img: "./assets/images/icon-sunny.webp" },
+  { hour: "10 PM", temp: "30°", img: "./assets/images/icon-sunny.webp" },
+  { hour: "11 PM", temp: "30°", img: "./assets/images/icon-sunny.webp" },
+  { hour: "12 PM", temp: "30°", img: "./assets/images/icon-sunny.webp" },
+  { hour: "1 AM", temp: "30°", img: "./assets/images/icon-sunny.webp" },
+  { hour: "3 AM", temp: "30°", img: "./assets/images/icon-sunny.webp" },
+  { hour: "4 AM", temp: "30°", img: "./assets/images/icon-sunny.webp" },
+  { hour: "5 AM", temp: "30°", img: "./assets/images/icon-sunny.webp" },
+  { hour: "6 AM", temp: "30°", img: "./assets/images/icon-sunny.webp" },
+  { hour: "7 AM", temp: "30°", img: "./assets/images/icon-sunny.webp" },
+  { hour: "8 AM", temp: "30°", img: "./assets/images/icon-sunny.webp" },
+  { hour: "9 AM", temp: "30°", img: "./assets/images/icon-sunny.webp" },
+  { hour: "10 AM", temp: "30°", img: "./assets/images/icon-sunny.webp" },
+  { hour: "11 AM", temp: "30°", img: "./assets/images/icon-sunny.webp" },
+  { hour: "12 AM", temp: "30°", img: "./assets/images/icon-sunny.webp" },
+];
+
 function App() {
   const [city, setCity] = useState("");
   const [searchCity, setSearchCity] = useState("");
@@ -57,6 +143,14 @@ function App() {
           setSearchCity={setSearchCity}
         />
       </HeroSection>
+      <MainSection>
+        <section className="weather-sec">
+          <TodayWeatherCard />
+          <WeatherDetails />
+          <DailyForecast />
+        </section>
+        <HourlyForecast />
+      </MainSection>
     </>
   );
 }
@@ -100,6 +194,76 @@ function SearchBar({ city, setCity, setSearchCity }) {
         Search
       </button>
     </form>
+  );
+}
+
+function MainSection({ children }) {
+  return <main className="weather-container">{children}</main>;
+}
+
+function TodayWeatherCard() {
+  return (
+    <div className="today-weather-card">
+      <div className="left-div">
+        <h4>Egypt, Aswan</h4>
+        <p>Friday, Jan 6, 2023</p>
+      </div>
+      <div className="right-div">
+        <img src="./assets/images/icon-sunny.webp" alt="sunny" />
+        <span>32°</span>
+      </div>
+    </div>
+  );
+}
+
+function WeatherDetails() {
+  return (
+    <ul className="weather-details">
+      {detailsData.map((detail) => (
+        <li className="detail-item" key={detail.label}>
+          <span className="detail-label">{detail.label}</span>
+          <span className="detail-value">{detail.value}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+function DailyForecast() {
+  return (
+    <ul className="daily-forecast">
+      {DailyForecastData.map((day) => (
+        <li className="forecast-item" key={day.day}>
+          <span className="forecast-day">{day.day}</span>
+          <img src={day.icon} alt={day.day} />
+          <div className="temp-range">
+            <span className="forecast-temp">{day.temp.max}</span>
+            <span className="forecast-temp">{day.temp.min}</span>
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function HourlyForecast() {
+  return (
+    <aside>
+      <div className="head">
+        <h5>Hourly Forecast</h5>
+        <span>Friday</span>
+      </div>
+      <ul className="hours-list">
+        {hoursTemp.map((hour) => (
+          <li key={hour.hour}>
+            <div>
+              <img src={hour.img} alt={hour.hour} />
+              <span className="hour">{hour.hour}</span>
+            </div>
+            <span className="temp">{hour.temp}</span>
+          </li>
+        ))}
+      </ul>
+    </aside>
   );
 }
 

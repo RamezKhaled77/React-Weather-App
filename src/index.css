@@ -26,6 +26,10 @@
   font-family: "DM Sans", sans-serif;
   font-size: 18px;
 }
+body {
+  background-color: var(--Neutral-900);
+  color: var(--Neutral-0);
+}
 button {
   all: unset;
   cursor: pointer;
@@ -35,10 +39,6 @@ input {
 }
 ul {
   list-style: none;
-}
-body {
-  background-color: var(--Neutral-900);
-  color: var(--Neutral-0);
 }
 header {
   padding: 1.7rem 3.5rem;
@@ -134,7 +134,7 @@ header {
 
       .left-div {
         h4 {
-          font-size: 1.9rem;
+          font-size: 2rem;
           margin-bottom: 0.5rem;
         }
 
@@ -149,7 +149,7 @@ header {
         display: flex;
         justify-content: center;
         align-items: center;
-        gap: 2.6rem;
+        gap: 2.2rem;
 
         img {
           width: 160px;
@@ -364,6 +364,7 @@ header {
     transform: translateY(-10px);
     visibility: hidden;
     transition: all 0.3s ease-out;
+    z-index: 6;
     &.show {
       opacity: 1;
       transform: translateY(0);
@@ -493,12 +494,15 @@ header {
         flex-direction: column;
         justify-content: space-evenly;
         align-items: center;
-        padding: 1.9rem;
+        padding: 1rem;
         .left-div {
           text-align: center;
+          padding-top: 2rem;
         }
         .right-div {
           margin-top: 1rem;
+          padding-right: 1.5rem;
+          gap: 1rem;
 
           span {
             font-size: 3.5rem;

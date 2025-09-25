@@ -88,11 +88,30 @@ const hoursTemp = [
 ];
 
 function App() {
+  const [place, setPlace] = useState({});
   const [city, setCity] = useState("");
   const [searchCity, setSearchCity] = useState("");
   const [weather, setWeather] = useState(null);
+  const [weatherDetails, setWeatherDetails] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  function findClosestIndex(times, targetTime) {
+    const target = new Date(targetTime).getTime();
+
+    let closestIndex = 0;
+    let minDiff = Infinity;
+
+    times.forEach((time, i) => {
+      const diff = Math.abs(new Date(time).getTime() - target);
+      if (diff < minDiff) {
+        minDiff = diff;
+        closestIndex = i;
+      }
+    });
+
+    return closestIndex;
+  }
 
   useEffect(() => {
     if (!searchCity) return;
@@ -108,6 +127,11 @@ function App() {
         const geoData = await geoRes.json();
         console.log(geoData);
 
+        setPlace({
+          city: geoData.results[0].name,
+          country: geoData.results[0].country,
+        });
+
         if (!geoData.results) {
           setError("City not found!");
           setLoading(false);
@@ -117,10 +141,39 @@ function App() {
         const { latitude, longitude } = geoData.results[0];
 
         const weatherRes = await fetch(
-          `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`
+          `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&hourly=apparent_temperature,relativehumidity_2m,precipitation,weathercode,windspeed_10m`
         );
         const weatherData = await weatherRes.json();
-        console.log(weatherData);
+        const curr = weatherData.current_weather;
+
+        const idx = findClosestIndex(weatherData.hourly.time, curr.time);
+
+        setWeatherDetails([
+          {
+            label: "Feels Like",
+            value: weatherData.hourly.apparent_temperature[idx],
+            units: [{ metric: " °C", imperial: " °F" }],
+          },
+          {
+            label: "Humidity",
+            value: weatherData.hourly.relativehumidity_2m[idx],
+            units: [{ metric: " %", imperial: " %" }],
+          },
+          {
+            label: "Wind",
+            value: curr.windspeed,
+            units: [{ metric: " km/h", imperial: " mph" }],
+          },
+          {
+            label: "Precipitation",
+            value: weatherData.hourly.precipitation[idx],
+            units: [{ metric: " mm", imperial: " in" }],
+          },
+        ]);
+
+        console.log("1st", weatherData);
+        console.log("2nd", curr);
+        console.log("3rd", idx);
 
         setWeather(weatherData.current_weather);
       } catch (error) {
@@ -145,8 +198,8 @@ function App() {
       </HeroSection>
       <MainSection>
         <section className="weather-sec">
-          <TodayWeatherCard />
-          <WeatherDetails />
+          <TodayWeatherCard place={place} weather={weather} />
+          <WeatherDetails weatherDetails={weatherDetails} />
           <DailyForecast />
         </section>
         <HourlyForecast />
@@ -201,30 +254,48 @@ function MainSection({ children }) {
   return <main className="weather-container">{children}</main>;
 }
 
-function TodayWeatherCard() {
+function TodayWeatherCard({ place, weather }) {
+  const today = new Date();
+  const day = today.toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+  if (weather) console.log("inside", weather.temperature);
   return (
     <div className="today-weather-card">
       <div className="left-div">
-        <h4>Egypt, Aswan</h4>
-        <p>Friday, Jan 6, 2023</p>
+        <h4>
+          {place.country}, {place.city}
+        </h4>
+        <p>{day}</p>
       </div>
       <div className="right-div">
         <img src="./assets/images/icon-sunny.webp" alt="sunny" />
-        <span>32°</span>
+        <span>{weather?.temperature}°</span>
       </div>
     </div>
   );
 }
 
-function WeatherDetails() {
+function WeatherDetails({ weatherDetails }) {
+  console.log(weatherDetails);
   return (
     <ul className="weather-details">
-      {detailsData.map((detail) => (
-        <li className="detail-item" key={detail.label}>
-          <span className="detail-label">{detail.label}</span>
-          <span className="detail-value">{detail.value}</span>
-        </li>
-      ))}
+      {weatherDetails &&
+        weatherDetails.map((detail) => (
+          <li className="detail-item" key={detail.label}>
+            <span className="detail-label">
+              {detail.label}
+              {detail.units.metric}
+            </span>
+            <span className="detail-value">
+              {detail.value}
+              {detail.units[0].metric}
+            </span>
+          </li>
+        ))}
     </ul>
   );
 }

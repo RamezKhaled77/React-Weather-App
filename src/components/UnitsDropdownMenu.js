@@ -15,7 +15,7 @@ const units = [
   },
 ];
 
-function DropdownMenu() {
+function UnitsDropdownMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const [isImperial, setIsImperial] = useState(false);
 
@@ -101,4 +101,4 @@ function DropdownSection({ secLabel, metricVal, imperialVal, isImperial }) {
   );
 }
 
-export default DropdownMenu;
+export default UnitsDropdownMenu;

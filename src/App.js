@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
-import DropdownMenu from "./components/DropdownMenu";
+import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
+import UnitsDropdownMenu from "./components/UnitsDropdownMenu";
+import DaysDropdownMenu from "./components/DaysDropdownMenu";
+import "react-loading-skeleton/dist/skeleton.css";
 
 const detailsData = [
   { label: "Feels Like", value: "30°" },
@@ -75,6 +78,7 @@ const hoursTemp = [
   { hour: "11 PM", temp: "30°", img: "./assets/images/icon-sunny.webp" },
   { hour: "12 PM", temp: "30°", img: "./assets/images/icon-sunny.webp" },
   { hour: "1 AM", temp: "30°", img: "./assets/images/icon-sunny.webp" },
+  { hour: "2 AM", temp: "30°", img: "./assets/images/icon-sunny.webp" },
   { hour: "3 AM", temp: "30°", img: "./assets/images/icon-sunny.webp" },
   { hour: "4 AM", temp: "30°", img: "./assets/images/icon-sunny.webp" },
   { hour: "5 AM", temp: "30°", img: "./assets/images/icon-sunny.webp" },
@@ -85,7 +89,72 @@ const hoursTemp = [
   { hour: "10 AM", temp: "30°", img: "./assets/images/icon-sunny.webp" },
   { hour: "11 AM", temp: "30°", img: "./assets/images/icon-sunny.webp" },
   { hour: "12 AM", temp: "30°", img: "./assets/images/icon-sunny.webp" },
+  { hour: "6 PM", temp: "30°", img: "./assets/images/icon-sunny.webp" },
+  { hour: "5 PM", temp: "30°", img: "./assets/images/icon-sunny.webp" },
+  { hour: "4 PM", temp: "30°", img: "./assets/images/icon-sunny.webp" },
+  { hour: "3 PM", temp: "30°", img: "./assets/images/icon-sunny.webp" },
+  { hour: "2 PM", temp: "30°", img: "./assets/images/icon-sunny.webp" },
+  { hour: "1 PM", temp: "30°", img: "./assets/images/icon-sunny.webp" },
 ];
+
+const imgsObj = {
+  sunny: "./assets/images/icon-sunny.webp",
+  rainy: "./assets/images/icon-rain.webp",
+  snowy: "./assets/images/icon-snow.webp",
+  stormy: "./assets/images/icon-storm.webp",
+  foggy: "./assets/images/icon-fog.webp",
+  overcast: "./assets/images/icon-overcast.webp",
+  cloudy: "./assets/images/icon-partly-cloudy.webp",
+  drizzle: "./assets/images/icon-drizzle.webp",
+};
+const weatherCodeMap = {
+  0: imgsObj.sunny,
+  1: imgsObj.cloudy,
+  2: imgsObj.cloudy,
+  3: imgsObj.overcast,
+  45: imgsObj.foggy,
+  48: imgsObj.foggy,
+  51: imgsObj.drizzle,
+  53: imgsObj.drizzle,
+  55: imgsObj.drizzle,
+  61: imgsObj.rainy,
+  63: imgsObj.rainy,
+  65: imgsObj.rainy,
+  71: imgsObj.snowy,
+  73: imgsObj.snowy,
+  75: imgsObj.snowy,
+  95: imgsObj.stormy,
+  96: imgsObj.stormy,
+  99: imgsObj.stormy,
+};
+
+const weatherDescriptionMap = {
+  0: "Clear sky",
+  1: "Mainly clear",
+  2: "Partly cloudy",
+  3: "Overcast",
+  45: "Fog",
+  48: "Depositing rime fog",
+  51: "Light drizzle",
+  53: "Moderate drizzle",
+  55: "Dense drizzle",
+  61: "Slight rain",
+  63: "Moderate rain",
+  65: "Heavy rain",
+  71: "Slight snow fall",
+  73: "Moderate snow fall",
+  75: "Heavy snow fall",
+  95: "Thunderstorm",
+  96: "Thunderstorm with slight hail",
+  99: "Thunderstorm with heavy hail",
+};
+
+function getWeatherIcon(code) {
+  return weatherCodeMap[code] || imgsObj.sunny; // default sunny
+}
+function getWeatherDescription(code) {
+  return weatherDescriptionMap[code] || "Unknown weather";
+}
 
 function App() {
   const [place, setPlace] = useState({});
@@ -93,7 +162,9 @@ function App() {
   const [searchCity, setSearchCity] = useState("");
   const [weather, setWeather] = useState(null);
   const [weatherDetails, setWeatherDetails] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [dailyForecast, setDailyForecast] = useState(null);
+  const [hourlyForecast, setHourlyForecast] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
   function findClosestIndex(times, targetTime) {
@@ -118,14 +189,14 @@ function App() {
 
     async function fetchWeather() {
       try {
-        setLoading(true);
+        setIsLoading(true);
         setError(null);
 
         const geoRes = await fetch(
           `https://geocoding-api.open-meteo.com/v1/search?name=${searchCity}&count=1`
         );
         const geoData = await geoRes.json();
-        console.log(geoData);
+        console.log("geoData", geoData);
 
         setPlace({
           city: geoData.results[0].name,
@@ -134,14 +205,14 @@ function App() {
 
         if (!geoData.results) {
           setError("City not found!");
-          setLoading(false);
+          setIsLoading(false);
           return;
         }
 
         const { latitude, longitude } = geoData.results[0];
 
         const weatherRes = await fetch(
-          `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&hourly=apparent_temperature,relativehumidity_2m,precipitation,weathercode,windspeed_10m`
+          `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&hourly=temperature_2m,weathercode&daily=temperature_2m_max,temperature_2m_min,weathercode&current_weather=true&hourly=apparent_temperature,relativehumidity_2m,precipitation,weathercode,windspeed_10m`
         );
         const weatherData = await weatherRes.json();
         const curr = weatherData.current_weather;
@@ -171,15 +242,48 @@ function App() {
           },
         ]);
 
+        setDailyForecast(
+          Array.from({ length: 7 }).map((_, i) => ({
+            day: weatherData.daily.time[i],
+            icon: getWeatherIcon(weatherData.daily.weathercode[i]),
+            temp: {
+              max: weatherData.daily.temperature_2m_max[i],
+              min: weatherData.daily.temperature_2m_min[i],
+            },
+            description: getWeatherDescription(
+              weatherData.daily.weathercode[i]
+            ),
+          }))
+        );
+
+        setHourlyForecast(
+          Array.from({ length: 24 }).map((_, i) => ({
+            hour: new Date(weatherData.hourly.time[i]).toLocaleTimeString(
+              "en-US",
+              {
+                hour: "numeric",
+                hour12: true,
+              }
+            ),
+            temp: weatherData.hourly.temperature_2m[i] + "°",
+            img: getWeatherIcon(weatherData.hourly.weathercode[i]),
+            description: getWeatherDescription(
+              weatherData.hourly.weathercode[i]
+            ),
+          }))
+        );
+
         console.log("1st", weatherData);
         console.log("2nd", curr);
         console.log("3rd", idx);
+        console.log("4th", weatherData.daily);
+        console.log("5th", weatherData.hourly);
 
         setWeather(weatherData.current_weather);
       } catch (error) {
         setError(error.message);
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     }
     fetchWeather();
@@ -187,23 +291,28 @@ function App() {
 
   return (
     <>
-      <Header />
-      <HeroSection>
-        <h1>How's the sky looking today?</h1>
-        <SearchBar
-          city={city}
-          setCity={setCity}
-          setSearchCity={setSearchCity}
-        />
-      </HeroSection>
-      <MainSection>
-        <section className="weather-sec">
-          <TodayWeatherCard place={place} weather={weather} />
-          <WeatherDetails weatherDetails={weatherDetails} />
-          <DailyForecast />
-        </section>
-        <HourlyForecast />
-      </MainSection>
+      <SkeletonTheme baseColor="#202020" highlightColor="#444">
+        <Header />
+        <HeroSection>
+          <h1>How's the sky looking today?</h1>
+          <SearchBar
+            city={city}
+            setCity={setCity}
+            setSearchCity={setSearchCity}
+          />
+        </HeroSection>
+        <MainSection>
+          <section className="weather-sec">
+            <TodayWeatherCard place={place} weather={weather} />
+            <WeatherDetails
+              weatherDetails={weatherDetails}
+              isLoading={isLoading}
+            />
+            <DailyForecast dailyForecast={dailyForecast} />
+          </section>
+          <HourlyForecast hourlyForecast={hourlyForecast} />
+        </MainSection>
+      </SkeletonTheme>
     </>
   );
 }
@@ -213,7 +322,7 @@ function Header() {
     <header>
       <img className="logo" src="./assets/images/logo.svg" alt="" />
 
-      <DropdownMenu />
+      <UnitsDropdownMenu />
     </header>
   );
 }
@@ -255,6 +364,10 @@ function MainSection({ children }) {
 }
 
 function TodayWeatherCard({ place, weather }) {
+  const icon = getWeatherIcon(weather?.weathercode);
+  if (weather) console.log("icon", icon, weather.weathercode);
+  if (weather) console.log(getWeatherDescription(weather.weathercode));
+
   const today = new Date();
   const day = today.toLocaleDateString("en-US", {
     weekday: "long",
@@ -272,15 +385,15 @@ function TodayWeatherCard({ place, weather }) {
         <p>{day}</p>
       </div>
       <div className="right-div">
-        <img src="./assets/images/icon-sunny.webp" alt="sunny" />
+        <img src={icon} alt={getWeatherDescription(weather?.weathercode)} />
         <span>{weather?.temperature}°</span>
       </div>
     </div>
   );
 }
 
-function WeatherDetails({ weatherDetails }) {
-  console.log(weatherDetails);
+function WeatherDetails({ weatherDetails, isLoading }) {
+  if (weatherDetails) console.log(weatherDetails);
   return (
     <ul className="weather-details">
       {weatherDetails &&
@@ -299,40 +412,52 @@ function WeatherDetails({ weatherDetails }) {
     </ul>
   );
 }
-function DailyForecast() {
+function DailyForecast({ dailyForecast }) {
+  function formatDate(dateStr) {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString("en-US", {
+      weekday: "short",
+    });
+  }
+  console.log(formatDate("2023-10-05"));
+  if (dailyForecast) console.log(typeof dailyForecast, dailyForecast);
+
   return (
     <ul className="daily-forecast">
-      {DailyForecastData.map((day) => (
-        <li className="forecast-item" key={day.day}>
-          <span className="forecast-day">{day.day}</span>
-          <img src={day.icon} alt={day.day} />
-          <div className="temp-range">
-            <span className="forecast-temp">{day.temp.max}</span>
-            <span className="forecast-temp">{day.temp.min}</span>
-          </div>
-        </li>
-      ))}
+      {dailyForecast &&
+        dailyForecast.map((day) => (
+          <li className="forecast-item" key={day.day}>
+            <span className="forecast-day">{formatDate(day.day)}</span>
+            <img src={day.icon} alt={day.day} />
+            <div className="temp-range">
+              <span className="forecast-temp">{day.temp.max}°</span>
+              <span className="forecast-temp">{day.temp.min}°</span>
+            </div>
+          </li>
+        ))}
     </ul>
   );
 }
 
-function HourlyForecast() {
+function HourlyForecast({ hourlyForecast }) {
+  if (hourlyForecast) console.log(typeof hourlyForecast, hourlyForecast);
   return (
     <aside>
       <div className="head">
         <h5>Hourly Forecast</h5>
-        <span>Friday</span>
+        <DaysDropdownMenu />
       </div>
       <ul className="hours-list">
-        {hoursTemp.map((hour) => (
-          <li key={hour.hour}>
-            <div>
-              <img src={hour.img} alt={hour.hour} />
-              <span className="hour">{hour.hour}</span>
-            </div>
-            <span className="temp">{hour.temp}</span>
-          </li>
-        ))}
+        {hourlyForecast &&
+          hourlyForecast.map((hour) => (
+            <li key={hour.hour}>
+              <div>
+                <img src={hour.img} alt={hour.description} />
+                <span className="hour">{hour.hour}</span>
+              </div>
+              <span className="temp">{hour.temp}</span>
+            </li>
+          ))}
       </ul>
     </aside>
   );

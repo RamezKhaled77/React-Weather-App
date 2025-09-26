@@ -111,7 +111,7 @@ header {
 .weather-container {
   padding: 1rem 3rem;
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: 2.1fr 0.9fr;
   grid-template-rows: auto;
   gap: 2rem;
 
@@ -239,7 +239,7 @@ header {
   aside {
     background-color: var(--Neutral-800);
     /* padding: 1.5rem; */
-    height: 719.55px;
+    height: 735.73px;
 
     border-radius: 1.2rem;
     -webkit-border-radius: 1.2rem;
@@ -247,12 +247,8 @@ header {
     -ms-border-radius: 1.2rem;
     -o-border-radius: 1.2rem;
 
-    &::-webkit-scrollbar-button {
-      display: none;
-    }
-
     .head {
-      padding: 1.5rem 1.5rem 0;
+      padding: 1.5rem 1.5rem 0rem;
       margin-bottom: 0.8rem;
       display: flex;
       justify-content: space-between;
@@ -271,10 +267,40 @@ header {
         padding: 0.5rem 0.8rem;
         background-color: red;
       }
+
+      .dropdown-container {
+        .dropdown-button {
+          background-color: var(--Neutral-600);
+        }
+        .dropdown-menu {
+          padding: 0.4rem;
+          /* background-color: red; */
+          display: flex;
+          flex-direction: column;
+          gap: 0.3rem;
+          .dropdown-item {
+            cursor: pointer;
+            padding: 0.5rem 0.9rem;
+            /*background-color: gold;
+            */
+            transition: all 0.4s;
+            border-radius: 0.4rem;
+            -webkit-border-radius: 0.4rem;
+            -moz-border-radius: 0.4rem;
+            -ms-border-radius: 0.4rem;
+            -o-border-radius: 0.4rem;
+            &.selected,
+            &:hover {
+              background-color: var(--Neutral-700);
+            }
+          }
+        }
+      }
     }
 
     .hours-list {
-      padding: 4.3rem 1.5rem 0rem;
+      background-color: firebrick;
+      padding: 0.8rem 1.5rem;
       scrollbar-width: thin;
       scroll-behavior: smooth;
       scrollbar-color: var(--Neutral-600) transparent;
@@ -282,7 +308,7 @@ header {
       max-height: calc(100% - 6rem);
       display: flex;
       flex-direction: column;
-      justify-content: center;
+      justify-content: start;
       align-items: center;
       gap: 0.8rem;
 
@@ -304,7 +330,6 @@ header {
         div {
           display: flex;
           align-items: center;
-          gap: 0.3rem;
 
           img {
             width: 58px;

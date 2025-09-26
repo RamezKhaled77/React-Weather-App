@@ -299,7 +299,7 @@ header {
     }
 
     .hours-list {
-      background-color: firebrick;
+      /* background-color: firebrick; */
       padding: 0.8rem 1.5rem;
       scrollbar-width: thin;
       scroll-behavior: smooth;

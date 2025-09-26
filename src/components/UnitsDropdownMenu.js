@@ -15,18 +15,12 @@ const units = [
   },
 ];
 
-function UnitsDropdownMenu() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [isImperial, setIsImperial] = useState(false);
-
-  function handleSwitch() {
-    setIsImperial(!isImperial);
-  }
-
-  const toggleMenu = () => {
-    setIsOpen(!isOpen);
-  };
-
+function UnitsDropdownMenu({
+  isImperial,
+  handleSwitch,
+  toggleMenu,
+  unitsIsOpen,
+}) {
   return (
     <div className="dropdown-container">
       <button className="dropdown-button" onClick={toggleMenu}>
@@ -35,7 +29,7 @@ function UnitsDropdownMenu() {
         <img src="./assets/images/icon-dropdown.svg" alt="units dropdown" />
       </button>
 
-      <div className={`dropdown-menu ${isOpen ? "show" : ""}`}>
+      <div className={`dropdown-menu ${unitsIsOpen ? "show" : ""}`}>
         <h5 className="switch-imperial" value="imperial" onClick={handleSwitch}>
           Switch to {isImperial ? "Metric" : "Imperial"}
         </h5>

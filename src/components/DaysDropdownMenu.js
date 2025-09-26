@@ -10,40 +10,26 @@ const weekendDays = [
   "Friday",
 ];
 
-function DaysDropdownMenu() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [selectedDay, setSelectedDay] = useState("Friday");
-
-  const toggleMenu = () => {
-    setIsOpen(!isOpen);
-  };
-
-  const handleDaySelect = (day) => {
-    setSelectedDay(day);
-  };
-
+export function DaysDropdownMenu({
+  children,
+  selectedDay,
+  isOpen,
+  toggleMenu,
+}) {
   return (
     <div className="dropdown-container">
       <button className="dropdown-button" onClick={toggleMenu}>
-        Today
+        {selectedDay}
         <img src="./assets/images/icon-dropdown.svg" alt="units dropdown" />
       </button>
 
-      <ul className={`dropdown-menu ${isOpen ? "show" : ""}`}>
-        {weekendDays.map((day) => (
-          <DropdownItem
-            key={day}
-            day={day}
-            selected={day === selectedDay}
-            onClick={() => handleDaySelect(day)}
-          />
-        ))}
-      </ul>
+      <ul className={`dropdown-menu ${isOpen ? "show" : ""}`}>{children}</ul>
     </div>
   );
 }
 
-function DropdownItem({ day, selected, onClick }) {
+export function DropdownItem({ day, selected, onClick }) {
+  //   console.log("from dropdown", selected);
   return (
     <li
       className={`dropdown-item ${selected ? "selected" : ""}`}
@@ -53,5 +39,3 @@ function DropdownItem({ day, selected, onClick }) {
     </li>
   );
 }
-
-export default DaysDropdownMenu;

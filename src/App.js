@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
 import UnitsDropdownMenu from "./components/UnitsDropdownMenu";
-import DaysDropdownMenu from "./components/DaysDropdownMenu";
+import { DaysDropdownMenu, DropdownItem } from "./components/DaysDropdownMenu";
 import "react-loading-skeleton/dist/skeleton.css";
 
 const detailsData = [
@@ -155,6 +155,12 @@ function getWeatherIcon(code) {
 function getWeatherDescription(code) {
   return weatherDescriptionMap[code] || "Unknown weather";
 }
+function formatDate(dateStr, format = "short") {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString("en-US", {
+    weekday: format,
+  });
+}
 
 function App() {
   const [place, setPlace] = useState({});
@@ -166,6 +172,45 @@ function App() {
   const [hourlyForecast, setHourlyForecast] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [selectedDay, setSelectedDay] = useState(
+    new Date().toLocaleDateString("en-US", { weekday: "long" })
+  );
+  const [selectedDayIndex, setSelectedDayIndex] = useState(0);
+  const [unitsIsOpen, setUnitIsOpen] = useState(false);
+  const [isImperial, setIsImperial] = useState(false);
+  const unitSystem = isImperial ? "imperial" : "metric";
+  const units =
+    unitSystem === "metric"
+      ? "&temperature_unit=celsius&apparent_temperature_unit=celsius&windspeed_unit=kmh&precipitation_unit=mm"
+      : "&temperature_unit=fahrenheit&apparent_temperature_unit=fahrenheit&windspeed_unit=mph&precipitation_unit=inch";
+
+  console.log("unitSystem", unitSystem);
+  const toggleUnitsMenu = () => {
+    setUnitIsOpen(!unitsIsOpen);
+  };
+
+  function handleSwitch() {
+    setIsImperial(!isImperial);
+    setUnitIsOpen(false);
+  }
+
+  function handleDaySelect(day) {
+    console.log(dailyForecast);
+    console.log("day =>", day);
+    setSelectedDay(day);
+    const dayIndex = dailyForecast.findIndex(
+      (d) => formatDate(d.day, "short") === day.slice(0, 3)
+    );
+    setSelectedDayIndex(dayIndex !== -1 ? dayIndex : 0);
+    console.log("=========>", dayIndex);
+    setIsOpen(false);
+  }
+
+  const [isOpen, setIsOpen] = useState(false);
+
+  function toggleMenu() {
+    setIsOpen(!isOpen);
+  }
 
   function findClosestIndex(times, targetTime) {
     const target = new Date(targetTime).getTime();
@@ -196,7 +241,7 @@ function App() {
           `https://geocoding-api.open-meteo.com/v1/search?name=${searchCity}&count=1`
         );
         const geoData = await geoRes.json();
-        console.log("geoData", geoData);
+        // console.log("geoData", geoData);
 
         setPlace({
           city: geoData.results[0].name,
@@ -212,7 +257,7 @@ function App() {
         const { latitude, longitude } = geoData.results[0];
 
         const weatherRes = await fetch(
-          `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&hourly=temperature_2m,weathercode&daily=temperature_2m_max,temperature_2m_min,weathercode&current_weather=true&hourly=apparent_temperature,relativehumidity_2m,precipitation,weathercode,windspeed_10m`
+          `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}${units}&hourly=temperature_2m,weathercode&daily=temperature_2m_max,temperature_2m_min,weathercode&current_weather=true&hourly=apparent_temperature,relativehumidity_2m,precipitation,weathercode,windspeed_10m`
         );
         const weatherData = await weatherRes.json();
         const curr = weatherData.current_weather;
@@ -256,30 +301,30 @@ function App() {
           }))
         );
 
-        setHourlyForecast(
-          Array.from({ length: 24 }).map((_, i) => ({
-            hour: new Date(weatherData.hourly.time[i]).toLocaleTimeString(
-              "en-US",
-              {
-                hour: "numeric",
-                hour12: true,
-              }
-            ),
-            temp: weatherData.hourly.temperature_2m[i] + "°",
-            img: getWeatherIcon(weatherData.hourly.weathercode[i]),
-            description: getWeatherDescription(
-              weatherData.hourly.weathercode[i]
-            ),
-          }))
-        );
+        // setHourlyForecast(
+        //   Array.from({ length: 24 }).map((_, i) => ({
+        //     hour: new Date(weatherData.hourly.time[i]).toLocaleTimeString(
+        //       "en-US",
+        //       {
+        //         hour: "numeric",
+        //         hour12: true,
+        //       }
+        //     ),
+        //     temp: weatherData.hourly.temperature_2m[i] + "°",
+        //     img: getWeatherIcon(weatherData.hourly.weathercode[i]),
+        //     description: getWeatherDescription(
+        //       weatherData.hourly.weathercode[i]
+        //     ),
+        //   }))
+        // );
 
-        console.log("1st", weatherData);
-        console.log("2nd", curr);
-        console.log("3rd", idx);
+        // console.log("1st", weatherData);
+        // console.log("2nd", curr);
+        // console.log("3rd", idx);
         console.log("4th", weatherData.daily);
         console.log("5th", weatherData.hourly);
 
-        setWeather(weatherData.current_weather);
+        setWeather(weatherData);
       } catch (error) {
         setError(error.message);
       } finally {
@@ -287,12 +332,40 @@ function App() {
       }
     }
     fetchWeather();
-  }, [searchCity]);
+  }, [searchCity, units]);
+
+  useEffect(() => {
+    if (!weather) return;
+
+    const startIndex = selectedDayIndex * 24;
+    const endIndex = startIndex + 24;
+
+    const sliced = weather?.hourly.time
+      .slice(startIndex, endIndex)
+      .map((t, i) => ({
+        hour: new Date(t).toLocaleTimeString("en-US", {
+          hour: "numeric",
+          hour12: true,
+        }),
+        temp: weather.hourly.temperature_2m[startIndex + i] + "°",
+        img: getWeatherIcon(weather.hourly.weathercode[startIndex + i]),
+        description: getWeatherDescription(
+          weather.hourly.weathercode[startIndex + i]
+        ),
+      }));
+
+    setHourlyForecast(sliced);
+  }, [weather, selectedDayIndex]);
 
   return (
     <>
       <SkeletonTheme baseColor="#202020" highlightColor="#444">
-        <Header />
+        <Header
+          isImperial={isImperial}
+          handleSwitch={handleSwitch}
+          unitsIsOpen={unitsIsOpen}
+          toggleMenu={toggleUnitsMenu}
+        />
         <HeroSection>
           <h1>How's the sky looking today?</h1>
           <SearchBar
@@ -306,23 +379,40 @@ function App() {
             <TodayWeatherCard place={place} weather={weather} />
             <WeatherDetails
               weatherDetails={weatherDetails}
-              isLoading={isLoading}
+              isImperial={isImperial}
             />
-            <DailyForecast dailyForecast={dailyForecast} />
+            <DailyForecast
+              dailyForecast={dailyForecast}
+              formatDate={formatDate}
+            />
           </section>
-          <HourlyForecast hourlyForecast={hourlyForecast} />
+          <HourlyForecast
+            hourlyForecast={hourlyForecast}
+            dailyForecast={dailyForecast}
+            selectedDay={selectedDay}
+            handleDaySelect={handleDaySelect}
+            formatDate={formatDate}
+            isOpen={isOpen}
+            toggleMenu={toggleMenu}
+            selectedDayIndex={selectedDayIndex}
+          />
         </MainSection>
       </SkeletonTheme>
     </>
   );
 }
 
-function Header() {
+function Header({ isImperial, handleSwitch, unitsIsOpen, toggleMenu }) {
   return (
     <header>
       <img className="logo" src="./assets/images/logo.svg" alt="" />
 
-      <UnitsDropdownMenu />
+      <UnitsDropdownMenu
+        isImperial={isImperial}
+        handleSwitch={handleSwitch}
+        toggleMenu={toggleMenu}
+        unitsIsOpen={unitsIsOpen}
+      />
     </header>
   );
 }
@@ -364,9 +454,10 @@ function MainSection({ children }) {
 }
 
 function TodayWeatherCard({ place, weather }) {
-  const icon = getWeatherIcon(weather?.weathercode);
-  if (weather) console.log("icon", icon, weather.weathercode);
-  if (weather) console.log(getWeatherDescription(weather.weathercode));
+  const icon = getWeatherIcon(weather?.current_weather.weathercode);
+  // if (weather) console.log("icon", icon, weather.current_weather.weathercode);
+  // if (weather)
+  //   console.log(getWeatherDescription(weather.current_weather.weathercode));
 
   const today = new Date();
   const day = today.toLocaleDateString("en-US", {
@@ -375,7 +466,7 @@ function TodayWeatherCard({ place, weather }) {
     day: "numeric",
     year: "numeric",
   });
-  if (weather) console.log("inside", weather.temperature);
+  // if (weather) console.log("inside", weather.current_weather.temperature);
   return (
     <div className="today-weather-card">
       <div className="left-div">
@@ -385,15 +476,18 @@ function TodayWeatherCard({ place, weather }) {
         <p>{day}</p>
       </div>
       <div className="right-div">
-        <img src={icon} alt={getWeatherDescription(weather?.weathercode)} />
-        <span>{weather?.temperature}°</span>
+        <img
+          src={icon}
+          alt={getWeatherDescription(weather?.current_weather.weathercode)}
+        />
+        <span>{weather?.current_weather.temperature}°</span>
       </div>
     </div>
   );
 }
 
-function WeatherDetails({ weatherDetails, isLoading }) {
-  if (weatherDetails) console.log(weatherDetails);
+function WeatherDetails({ weatherDetails, isImperial }) {
+  // if (weatherDetails) console.log(weatherDetails[0].units.metric);
   return (
     <ul className="weather-details">
       {weatherDetails &&
@@ -401,26 +495,20 @@ function WeatherDetails({ weatherDetails, isLoading }) {
           <li className="detail-item" key={detail.label}>
             <span className="detail-label">
               {detail.label}
-              {detail.units.metric}
+              {/* {detail.units.metric} */}
             </span>
             <span className="detail-value">
               {detail.value}
-              {detail.units[0].metric}
+              {isImperial ? detail.units[0].imperial : detail.units[0].metric}
             </span>
           </li>
         ))}
     </ul>
   );
 }
-function DailyForecast({ dailyForecast }) {
-  function formatDate(dateStr) {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString("en-US", {
-      weekday: "short",
-    });
-  }
-  console.log(formatDate("2023-10-05"));
-  if (dailyForecast) console.log(typeof dailyForecast, dailyForecast);
+function DailyForecast({ dailyForecast, formatDate }) {
+  // console.log(formatDate("2023-10-05"));
+  // if (dailyForecast) console.log(typeof dailyForecast, dailyForecast);
 
   return (
     <ul className="daily-forecast">
@@ -439,13 +527,35 @@ function DailyForecast({ dailyForecast }) {
   );
 }
 
-function HourlyForecast({ hourlyForecast }) {
-  if (hourlyForecast) console.log(typeof hourlyForecast, hourlyForecast);
+function HourlyForecast({
+  hourlyForecast,
+  dailyForecast,
+  selectedDay,
+  handleDaySelect,
+  formatDate,
+  isOpen,
+  toggleMenu,
+}) {
+  // if (hourlyForecast) console.log(typeof hourlyForecast, hourlyForecast);
   return (
     <aside>
       <div className="head">
         <h5>Hourly Forecast</h5>
-        <DaysDropdownMenu />
+
+        <DaysDropdownMenu
+          selectedDay={selectedDay}
+          isOpen={isOpen}
+          toggleMenu={toggleMenu}
+        >
+          {dailyForecast?.map((day) => (
+            <DropdownItem
+              key={day.day}
+              day={formatDate(day.day, "long")}
+              selected={formatDate(day.day, "long") === selectedDay}
+              onClick={() => handleDaySelect(formatDate(day.day, "long"))}
+            />
+          ))}
+        </DaysDropdownMenu>
       </div>
       <ul className="hours-list">
         {hourlyForecast &&

@@ -247,27 +247,36 @@ function App() {
         setError(null);
 
         const geoRes = await fetch(
-          `https://geocoding-api.open-meteo.com/v1/search?name=${searchCity}&count=1`
+          `https://geocxoding-api.open-meteo.com/v1/search?name=${searchCity}&count=1`
         );
+
+        if (!geoRes.ok) {
+          throw new Error("Geocoding API error");
+        }
+
         const geoData = await geoRes.json();
-        // console.log("geoData", geoData);
+
+        if (!geoData.results || geoData.results.length === 0) {
+          setError("City not found!");
+          setIsLoading(false);
+          return;
+        }
 
         setPlace({
           city: geoData.results[0].name,
           country: geoData.results[0].country,
         });
 
-        if (!geoData.results) {
-          setError("City not found!");
-          setIsLoading(false);
-          return;
-        }
-
         const { latitude, longitude } = geoData.results[0];
 
         const weatherRes = await fetch(
           `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}${units}&hourly=temperature_2m,weathercode&daily=temperature_2m_max,temperature_2m_min,weathercode&current_weather=true&hourly=apparent_temperature,relativehumidity_2m,precipitation,weathercode,windspeed_10m`
         );
+
+        if (!weatherRes.ok) {
+          throw new Error("Weather API error");
+        }
+
         const weatherData = await weatherRes.json();
         const curr = weatherData.current_weather;
 
@@ -310,21 +319,110 @@ function App() {
           }))
         );
 
-        console.log("1st", weatherData);
-        // console.log("2nd", curr);
-        // console.log("3rd", idx);
-        // console.log("4th", weatherData.daily);
-        // console.log("5th", weatherData.hourly);
-
         setWeather(weatherData);
       } catch (error) {
-        setError(error.message);
+        if (error.message.includes("Geocoding")) {
+          setError("Could not fetch location data. Please try again.");
+        } else if (error.message.includes("Weather")) {
+          setError("Could not fetch weather data. Please try again.");
+        } else {
+          setError("Something went wrong");
+        }
       } finally {
         setIsLoading(false);
       }
     }
+
     fetchWeather();
   }, [searchCity, units]);
+
+  // useEffect(() => {
+  //   if (!searchCity) return;
+
+  //   async function fetchWeather() {
+  //     try {
+  //       setIsLoading(true);
+  //       setError(null);
+
+  //       const geoRes = await fetch(
+  //         `https://geocoding-api.open-meteo.com/v1/search?name=${searchCity}&count=1`
+  //       );
+  //       const geoData = await geoRes.json();
+  //       // console.log("geoData", geoData);
+
+  //       setPlace({
+  //         city: geoData.results[0].name,
+  //         country: geoData.results[0].country,
+  //       });
+
+  //       if (!geoData.results) {
+  //         setError("City not found!");
+  //         setIsLoading(false);
+  //         return;
+  //       }
+
+  //       const { latitude, longitude } = geoData.results[0];
+
+  //       const weatherRes = await fetch(
+  //         `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}${units}&hourly=temperature_2m,weathercode&daily=temperature_2m_max,temperature_2m_min,weathercode&current_weather=true&hourly=apparent_temperature,relativehumidity_2m,precipitation,weathercode,windspeed_10m`
+  //       );
+  //       const weatherData = await weatherRes.json();
+  //       const curr = weatherData.current_weather;
+
+  //       const idx = findClosestIndex(weatherData.hourly.time, curr.time);
+
+  //       setWeatherDetails([
+  //         {
+  //           label: "Feels Like",
+  //           value: weatherData.hourly.apparent_temperature[idx],
+  //           units: [{ metric: " °C", imperial: " °F" }],
+  //         },
+  //         {
+  //           label: "Humidity",
+  //           value: weatherData.hourly.relativehumidity_2m[idx],
+  //           units: [{ metric: " %", imperial: " %" }],
+  //         },
+  //         {
+  //           label: "Wind",
+  //           value: curr.windspeed,
+  //           units: [{ metric: " km/h", imperial: " mph" }],
+  //         },
+  //         {
+  //           label: "Precipitation",
+  //           value: weatherData.hourly.precipitation[idx],
+  //           units: [{ metric: " mm", imperial: " in" }],
+  //         },
+  //       ]);
+
+  //       setDailyForecast(
+  //         Array.from({ length: 7 }).map((_, i) => ({
+  //           day: weatherData.daily.time[i],
+  //           icon: getWeatherIcon(weatherData.daily.weathercode[i]),
+  //           temp: {
+  //             max: weatherData.daily.temperature_2m_max[i],
+  //             min: weatherData.daily.temperature_2m_min[i],
+  //           },
+  //           description: getWeatherDescription(
+  //             weatherData.daily.weathercode[i]
+  //           ),
+  //         }))
+  //       );
+
+  //       console.log("1st", weatherData);
+  //       // console.log("2nd", curr);
+  //       // console.log("3rd", idx);
+  //       // console.log("4th", weatherData.daily);
+  //       // console.log("5th", weatherData.hourly);
+
+  //       setWeather(weatherData);
+  //     } catch (error) {
+  //       setError(error.message);
+  //     } finally {
+  //       setIsLoading(false);
+  //     }
+  //   }
+  //   fetchWeather();
+  // }, [searchCity, units]);
 
   useEffect(() => {
     if (!weather) return;
@@ -354,7 +452,7 @@ function App() {
     if (error) setSearchingAgain(false);
   }, [weather, error]);
 
-  console.log("weather", weather);
+  // console.log("weather", weather);
   console.log("error", error);
 
   return (
@@ -366,21 +464,24 @@ function App() {
           unitsIsOpen={unitsIsOpen}
           toggleMenu={toggleUnitsMenu}
         />
-        <HeroSection>
-          <h1>How's the sky looking today?</h1>
-          <SearchBar
-            city={city}
-            setCity={setCity}
-            setSearchCity={setSearchCity}
-            weather={weather}
-            searchingAgain={searchingAgain}
-            setSearchingAgain={setSearchingAgain}
-            error={error}
-          />
-        </HeroSection>
-        {error ? (
-          <NoResult />
-        ) : (
+        {error?.includes("City not found") && <NoResultMsg />}
+        {error?.includes("Something went wrong") && <SomethingWentWrongMsg />}
+        {!error?.includes("Something went wrong") && (
+          <HeroSection>
+            <h1>How's the sky looking today?</h1>
+            <SearchBar
+              city={city}
+              setCity={setCity}
+              setSearchCity={setSearchCity}
+              weather={weather}
+              searchingAgain={searchingAgain}
+              setSearchingAgain={setSearchingAgain}
+              error={error}
+            />
+          </HeroSection>
+        )}
+
+        {!error && (
           <MainSection>
             <section className="weather-sec">
               <TodayWeatherCard
@@ -702,8 +803,24 @@ function HourlyForecast({
   );
 }
 
-function NoResult() {
+function NoResultMsg() {
   return <div className="no-result">No search result found!</div>;
+}
+function SomethingWentWrongMsg() {
+  return (
+    <div className="something-wrong">
+      <img src="./assets/images/icon-error.svg" alt="something went wrong" />
+      <h1>Something went wrong</h1>
+      <p>
+        We couldn't connect to the server (API error). Please try again in a few
+        moments.
+      </p>
+      <button tabIndex={0} onClick={() => window.location.reload()}>
+        <img src="./assets/images/icon-retry.svg" alt="retry" />
+        Retry
+      </button>
+    </div>
+  );
 }
 
 function SearchInProgress({ searchingAgain }) {

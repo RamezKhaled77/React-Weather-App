@@ -22,16 +22,21 @@ function UnitsDropdownMenu({
 }) {
   return (
     <div className="dropdown-container">
-      <button className="dropdown-button" onClick={toggleMenu}>
+      <button tabIndex={0} className="dropdown-button" onClick={toggleMenu}>
         <img src="./assets/images/icon-units.svg" alt="units" />
         Units
         <img src="./assets/images/icon-dropdown.svg" alt="units dropdown" />
       </button>
 
       <div className={`dropdown-menu ${unitsIsOpen ? "show" : ""}`}>
-        <h5 className="switch-imperial" value="imperial" onClick={handleSwitch}>
+        <button
+          tabIndex={0}
+          className="switch-imperial"
+          value="imperial"
+          onClick={handleSwitch}
+        >
           Switch to {isImperial ? "Metric" : "Imperial"}
-        </h5>
+        </button>
 
         {units.map((unit) => (
           <DropdownSection

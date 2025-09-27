@@ -33,8 +33,16 @@ export function DropdownItem({ day, selected, onClick }) {
   //   console.log("from dropdown", selected);
   return (
     <li
+      tabIndex={0}
+      role="button"
       className={`dropdown-item ${selected ? "selected" : ""}`}
       onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick();
+        }
+      }}
     >
       {day}
     </li>

@@ -1,5 +1,4 @@
 // src/components/DropdownMenu.jsx
-import { useState } from "react";
 
 const units = [
   {

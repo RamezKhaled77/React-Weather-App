@@ -1,5 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
+import { ProgressBar } from "react-loader-spinner";
+
 import UnitsDropdownMenu from "./components/UnitsDropdownMenu";
 import { DaysDropdownMenu, DropdownItem } from "./components/DaysDropdownMenu";
 import "react-loading-skeleton/dist/skeleton.css";
@@ -97,6 +99,12 @@ const hoursTemp = [
   { hour: "1 PM", temp: "30°", img: "./assets/images/icon-sunny.webp" },
 ];
 
+const skeletonColors = {
+  baseColor: "hsla(240, 22%, 27%, 1.00)",
+  baseColor2: "hsla(240, 22%, 36%, 1.00)",
+  highlightColor: "hsla(240, 33%, 47%, 1.00)",
+};
+
 const imgsObj = {
   sunny: "./assets/images/icon-sunny.webp",
   rainy: "./assets/images/icon-rain.webp",
@@ -178,13 +186,14 @@ function App() {
   const [selectedDayIndex, setSelectedDayIndex] = useState(0);
   const [unitsIsOpen, setUnitIsOpen] = useState(false);
   const [isImperial, setIsImperial] = useState(false);
+  const [searchingAgain, setSearchingAgain] = useState(false);
   const unitSystem = isImperial ? "imperial" : "metric";
   const units =
     unitSystem === "metric"
       ? "&temperature_unit=celsius&apparent_temperature_unit=celsius&windspeed_unit=kmh&precipitation_unit=mm"
       : "&temperature_unit=fahrenheit&apparent_temperature_unit=fahrenheit&windspeed_unit=mph&precipitation_unit=inch";
 
-  console.log("unitSystem", unitSystem);
+  // console.log("unitSystem", unitSystem);
   const toggleUnitsMenu = () => {
     setUnitIsOpen(!unitsIsOpen);
   };
@@ -195,14 +204,14 @@ function App() {
   }
 
   function handleDaySelect(day) {
-    console.log(dailyForecast);
-    console.log("day =>", day);
+    // console.log(dailyForecast);
+    // console.log("day =>", day);
     setSelectedDay(day);
     const dayIndex = dailyForecast.findIndex(
       (d) => formatDate(d.day, "short") === day.slice(0, 3)
     );
     setSelectedDayIndex(dayIndex !== -1 ? dayIndex : 0);
-    console.log("=========>", dayIndex);
+    // console.log("=========>", dayIndex);
     setIsOpen(false);
   }
 
@@ -301,28 +310,11 @@ function App() {
           }))
         );
 
-        // setHourlyForecast(
-        //   Array.from({ length: 24 }).map((_, i) => ({
-        //     hour: new Date(weatherData.hourly.time[i]).toLocaleTimeString(
-        //       "en-US",
-        //       {
-        //         hour: "numeric",
-        //         hour12: true,
-        //       }
-        //     ),
-        //     temp: weatherData.hourly.temperature_2m[i] + "°",
-        //     img: getWeatherIcon(weatherData.hourly.weathercode[i]),
-        //     description: getWeatherDescription(
-        //       weatherData.hourly.weathercode[i]
-        //     ),
-        //   }))
-        // );
-
-        // console.log("1st", weatherData);
+        console.log("1st", weatherData);
         // console.log("2nd", curr);
         // console.log("3rd", idx);
-        console.log("4th", weatherData.daily);
-        console.log("5th", weatherData.hourly);
+        // console.log("4th", weatherData.daily);
+        // console.log("5th", weatherData.hourly);
 
         setWeather(weatherData);
       } catch (error) {
@@ -357,6 +349,14 @@ function App() {
     setHourlyForecast(sliced);
   }, [weather, selectedDayIndex]);
 
+  useEffect(() => {
+    if (weather) setSearchingAgain(false);
+    if (error) setSearchingAgain(false);
+  }, [weather, error]);
+
+  console.log("weather", weather);
+  console.log("error", error);
+
   return (
     <>
       <SkeletonTheme baseColor="#202020" highlightColor="#444">
@@ -372,31 +372,46 @@ function App() {
             city={city}
             setCity={setCity}
             setSearchCity={setSearchCity}
+            weather={weather}
+            searchingAgain={searchingAgain}
+            setSearchingAgain={setSearchingAgain}
+            error={error}
           />
         </HeroSection>
-        <MainSection>
-          <section className="weather-sec">
-            <TodayWeatherCard place={place} weather={weather} />
-            <WeatherDetails
-              weatherDetails={weatherDetails}
-              isImperial={isImperial}
-            />
-            <DailyForecast
+        {error ? (
+          <NoResult />
+        ) : (
+          <MainSection>
+            <section className="weather-sec">
+              <TodayWeatherCard
+                place={place}
+                weather={weather}
+                isLoading={isLoading}
+              />
+              <WeatherDetails
+                weatherDetails={weatherDetails}
+                isImperial={isImperial}
+                isLoading={isLoading}
+              />
+              <DailyForecast
+                dailyForecast={dailyForecast}
+                formatDate={formatDate}
+                isLoading={isLoading}
+              />
+            </section>
+            <HourlyForecast
+              hourlyForecast={hourlyForecast}
               dailyForecast={dailyForecast}
+              selectedDay={selectedDay}
+              handleDaySelect={handleDaySelect}
               formatDate={formatDate}
+              isOpen={isOpen}
+              toggleMenu={toggleMenu}
+              selectedDayIndex={selectedDayIndex}
+              isLoading={isLoading}
             />
-          </section>
-          <HourlyForecast
-            hourlyForecast={hourlyForecast}
-            dailyForecast={dailyForecast}
-            selectedDay={selectedDay}
-            handleDaySelect={handleDaySelect}
-            formatDate={formatDate}
-            isOpen={isOpen}
-            toggleMenu={toggleMenu}
-            selectedDayIndex={selectedDayIndex}
-          />
-        </MainSection>
+          </MainSection>
+        )}
       </SkeletonTheme>
     </>
   );
@@ -421,11 +436,20 @@ function HeroSection({ children }) {
   return <div className="hero-sec">{children}</div>;
 }
 
-function SearchBar({ city, setCity, setSearchCity }) {
+function SearchBar({
+  city,
+  setCity,
+  setSearchCity,
+  weather,
+  searchingAgain,
+  setSearchingAgain,
+  error,
+}) {
   function handleSubmit(e) {
     e.preventDefault();
     if (city.trim() !== "") {
       setSearchCity(city);
+      if (weather) setSearchingAgain(true);
     }
   }
 
@@ -445,6 +469,7 @@ function SearchBar({ city, setCity, setSearchCity }) {
       <button type="submit" onClick={handleSubmit}>
         Search
       </button>
+      <SearchInProgress searchingAgain={searchingAgain} />
     </form>
   );
 }
@@ -453,7 +478,7 @@ function MainSection({ children }) {
   return <main className="weather-container">{children}</main>;
 }
 
-function TodayWeatherCard({ place, weather }) {
+function TodayWeatherCard({ place, weather, isLoading }) {
   const icon = getWeatherIcon(weather?.current_weather.weathercode);
   // if (weather) console.log("icon", icon, weather.current_weather.weathercode);
   // if (weather)
@@ -468,29 +493,61 @@ function TodayWeatherCard({ place, weather }) {
   });
   // if (weather) console.log("inside", weather.current_weather.temperature);
   return (
-    <div className="today-weather-card">
-      <div className="left-div">
-        <h4>
-          {place.country}, {place.city}
-        </h4>
-        <p>{day}</p>
-      </div>
-      <div className="right-div">
-        <img
-          src={icon}
-          alt={getWeatherDescription(weather?.current_weather.weathercode)}
-        />
-        <span>{weather?.current_weather.temperature}°</span>
-      </div>
+    <div className={`today-weather-card ${isLoading ? "loading" : ""}`}>
+      {isLoading || (
+        <>
+          <div className="left-div">
+            <h4>
+              {place.country}, {place.city}
+            </h4>
+            <p>{day}</p>
+          </div>
+          <div className="right-div">
+            <img
+              src={icon}
+              alt={getWeatherDescription(weather?.current_weather.weathercode)}
+            />
+            <span>{weather?.current_weather.temperature}°</span>
+          </div>
+        </>
+      )}
+      {isLoading && (
+        <div className="loading-state">
+          <ProgressBar
+            visible={true}
+            height="80"
+            width="80"
+            barColor="hsl(233, 67%, 56%)"
+            borderColor="hsl(28, 100%, 52%)"
+            ariaLabel="progress-bar-loading"
+            wrapperStyle={{}}
+            wrapperClass=""
+          />
+          <p>Loading...</p>
+        </div>
+      )}
     </div>
   );
 }
 
-function WeatherDetails({ weatherDetails, isImperial }) {
+function WeatherDetails({ weatherDetails, isImperial, isLoading }) {
   // if (weatherDetails) console.log(weatherDetails[0].units.metric);
   return (
     <ul className="weather-details">
+      {(isLoading || !weatherDetails) &&
+        detailsData.map((item) => (
+          <li className="detail-item" key={item.label}>
+            <span className="detail-label">{item.label}</span>
+            <Skeleton
+              height={35}
+              width={110}
+              baseColor={skeletonColors.baseColor}
+              highlightColor={skeletonColors.highlightColor}
+            />
+          </li>
+        ))}
       {weatherDetails &&
+        !isLoading &&
         weatherDetails.map((detail) => (
           <li className="detail-item" key={detail.label}>
             <span className="detail-label">
@@ -506,13 +563,14 @@ function WeatherDetails({ weatherDetails, isImperial }) {
     </ul>
   );
 }
-function DailyForecast({ dailyForecast, formatDate }) {
+function DailyForecast({ dailyForecast, formatDate, isLoading }) {
   // console.log(formatDate("2023-10-05"));
   // if (dailyForecast) console.log(typeof dailyForecast, dailyForecast);
 
   return (
     <ul className="daily-forecast">
       {dailyForecast &&
+        !isLoading &&
         dailyForecast.map((day) => (
           <li className="forecast-item" key={day.day}>
             <span className="forecast-day">{formatDate(day.day)}</span>
@@ -523,6 +581,43 @@ function DailyForecast({ dailyForecast, formatDate }) {
             </div>
           </li>
         ))}
+      {(!dailyForecast || isLoading) &&
+        Array(7)
+          .fill(0)
+          .map((_, i) => (
+            <li className="forecast-item" key={i}>
+              <Skeleton
+                baseColor={skeletonColors.baseColor}
+                highlightColor={skeletonColors.highlightColor}
+                count={1}
+                width={65}
+                height={30}
+              />
+
+              <Skeleton
+                baseColor={skeletonColors.baseColor}
+                highlightColor={skeletonColors.highlightColor}
+                height={50}
+                width={50}
+                circle
+              />
+              <div className="temp-range">
+                <Skeleton
+                  baseColor={skeletonColors.baseColor}
+                  highlightColor={skeletonColors.highlightColor}
+                  count={1}
+                  width={40}
+                />
+
+                <Skeleton
+                  baseColor={skeletonColors.baseColor}
+                  highlightColor={skeletonColors.highlightColor}
+                  count={1}
+                  width={40}
+                />
+              </div>
+            </li>
+          ))}
     </ul>
   );
 }
@@ -535,6 +630,7 @@ function HourlyForecast({
   formatDate,
   isOpen,
   toggleMenu,
+  isLoading,
 }) {
   // if (hourlyForecast) console.log(typeof hourlyForecast, hourlyForecast);
   return (
@@ -543,12 +639,14 @@ function HourlyForecast({
         <h5>Hourly Forecast</h5>
 
         <DaysDropdownMenu
+          isLoading={isLoading}
           selectedDay={selectedDay}
           isOpen={isOpen}
           toggleMenu={toggleMenu}
         >
           {dailyForecast?.map((day) => (
             <DropdownItem
+              isLoading={isLoading}
               key={day.day}
               day={formatDate(day.day, "long")}
               selected={formatDate(day.day, "long") === selectedDay}
@@ -559,6 +657,7 @@ function HourlyForecast({
       </div>
       <ul className="hours-list">
         {hourlyForecast &&
+          !isLoading &&
           hourlyForecast.map((hour) => (
             <li key={hour.hour}>
               <div>
@@ -568,8 +667,51 @@ function HourlyForecast({
               <span className="temp">{hour.temp}</span>
             </li>
           ))}
+        {(!hourlyForecast || isLoading) &&
+          Array(23)
+            .fill(0)
+            .map((_, i) => (
+              <li key={i}>
+                <div>
+                  <Skeleton
+                    style={{ margin: "10px 15px" }}
+                    height={40}
+                    width={40}
+                    baseColor={skeletonColors.baseColor2}
+                    highlightColor={skeletonColors.highlightColor}
+                    circle
+                  />
+                  <Skeleton
+                    baseColor={skeletonColors.baseColor2}
+                    highlightColor={skeletonColors.highlightColor}
+                    count={1}
+                    width={50}
+                  />
+                </div>
+                <Skeleton
+                  baseColor={skeletonColors.baseColor2}
+                  highlightColor={skeletonColors.highlightColor}
+                  count={1}
+                  width={40}
+                  height={25}
+                />
+              </li>
+            ))}
       </ul>
     </aside>
+  );
+}
+
+function NoResult() {
+  return <div className="no-result">No search result found!</div>;
+}
+
+function SearchInProgress({ searchingAgain }) {
+  return (
+    <div className={`search-in-progress  ${searchingAgain ? "searching" : ""}`}>
+      <img src="./assets/images/icon-loading.svg" alt="searching" />
+      <p>Search in progress</p>
+    </div>
   );
 }
 

@@ -15,11 +15,12 @@ export function DaysDropdownMenu({
   selectedDay,
   isOpen,
   toggleMenu,
+  isLoading,
 }) {
   return (
     <div className="dropdown-container">
       <button className="dropdown-button" onClick={toggleMenu}>
-        {selectedDay}
+        {isLoading ? "-" : selectedDay}
         <img src="./assets/images/icon-dropdown.svg" alt="units dropdown" />
       </button>
 

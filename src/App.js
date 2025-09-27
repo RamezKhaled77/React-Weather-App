@@ -187,6 +187,9 @@ function App() {
   const [unitsIsOpen, setUnitIsOpen] = useState(false);
   const [isImperial, setIsImperial] = useState(false);
   const [searchingAgain, setSearchingAgain] = useState(false);
+  const [searchHistory, setSearchHistory] = useState(
+    JSON.parse(localStorage.getItem("searchHistory")) || []
+  );
   const unitSystem = isImperial ? "imperial" : "metric";
   const units =
     unitSystem === "metric"
@@ -247,7 +250,7 @@ function App() {
         setError(null);
 
         const geoRes = await fetch(
-          `https://geocxoding-api.open-meteo.com/v1/search?name=${searchCity}&count=1`
+          `https://geocoding-api.open-meteo.com/v1/search?name=${searchCity}&count=1`
         );
 
         if (!geoRes.ok) {
@@ -261,6 +264,17 @@ function App() {
           setIsLoading(false);
           return;
         }
+
+        const cityName = geoData.results[0].name;
+
+        setSearchHistory((prev) => {
+          const updated = [
+            cityName,
+            ...prev.filter((c) => c !== cityName),
+          ].slice(0, 5);
+          localStorage.setItem("searchHistory", JSON.stringify(updated));
+          return updated;
+        });
 
         setPlace({
           city: geoData.results[0].name,
@@ -454,6 +468,7 @@ function App() {
 
   // console.log("weather", weather);
   console.log("error", error);
+  console.log("searchHistory", searchHistory);
 
   return (
     <>
@@ -464,7 +479,6 @@ function App() {
           unitsIsOpen={unitsIsOpen}
           toggleMenu={toggleUnitsMenu}
         />
-        {error?.includes("City not found") && <NoResultMsg />}
         {error?.includes("Something went wrong") && <SomethingWentWrongMsg />}
         {!error?.includes("Something went wrong") && (
           <HeroSection>
@@ -480,6 +494,7 @@ function App() {
             />
           </HeroSection>
         )}
+        {error?.includes("City not found") && <NoResultMsg />}
 
         {!error && (
           <MainSection>

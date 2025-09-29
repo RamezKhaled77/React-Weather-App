@@ -196,7 +196,6 @@ function App() {
       ? "&temperature_unit=celsius&apparent_temperature_unit=celsius&windspeed_unit=kmh&precipitation_unit=mm"
       : "&temperature_unit=fahrenheit&apparent_temperature_unit=fahrenheit&windspeed_unit=mph&precipitation_unit=inch";
 
-  // console.log("unitSystem", unitSystem);
   const toggleUnitsMenu = () => {
     setUnitIsOpen(!unitsIsOpen);
   };
@@ -207,14 +206,11 @@ function App() {
   }
 
   function handleDaySelect(day) {
-    // console.log(dailyForecast);
-    // console.log("day =>", day);
     setSelectedDay(day);
     const dayIndex = dailyForecast.findIndex(
       (d) => formatDate(d.day, "short") === day.slice(0, 3)
     );
     setSelectedDayIndex(dayIndex !== -1 ? dayIndex : 0);
-    // console.log("=========>", dayIndex);
     setIsOpen(false);
   }
 
@@ -296,6 +292,8 @@ function App() {
 
         const idx = findClosestIndex(weatherData.hourly.time, curr.time);
 
+        setSearchingAgain(false);
+
         setWeatherDetails([
           {
             label: "Feels Like",
@@ -350,94 +348,6 @@ function App() {
     fetchWeather();
   }, [searchCity, units]);
 
-  // useEffect(() => {
-  //   if (!searchCity) return;
-
-  //   async function fetchWeather() {
-  //     try {
-  //       setIsLoading(true);
-  //       setError(null);
-
-  //       const geoRes = await fetch(
-  //         `https://geocoding-api.open-meteo.com/v1/search?name=${searchCity}&count=1`
-  //       );
-  //       const geoData = await geoRes.json();
-  //       // console.log("geoData", geoData);
-
-  //       setPlace({
-  //         city: geoData.results[0].name,
-  //         country: geoData.results[0].country,
-  //       });
-
-  //       if (!geoData.results) {
-  //         setError("City not found!");
-  //         setIsLoading(false);
-  //         return;
-  //       }
-
-  //       const { latitude, longitude } = geoData.results[0];
-
-  //       const weatherRes = await fetch(
-  //         `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}${units}&hourly=temperature_2m,weathercode&daily=temperature_2m_max,temperature_2m_min,weathercode&current_weather=true&hourly=apparent_temperature,relativehumidity_2m,precipitation,weathercode,windspeed_10m`
-  //       );
-  //       const weatherData = await weatherRes.json();
-  //       const curr = weatherData.current_weather;
-
-  //       const idx = findClosestIndex(weatherData.hourly.time, curr.time);
-
-  //       setWeatherDetails([
-  //         {
-  //           label: "Feels Like",
-  //           value: weatherData.hourly.apparent_temperature[idx],
-  //           units: [{ metric: " °C", imperial: " °F" }],
-  //         },
-  //         {
-  //           label: "Humidity",
-  //           value: weatherData.hourly.relativehumidity_2m[idx],
-  //           units: [{ metric: " %", imperial: " %" }],
-  //         },
-  //         {
-  //           label: "Wind",
-  //           value: curr.windspeed,
-  //           units: [{ metric: " km/h", imperial: " mph" }],
-  //         },
-  //         {
-  //           label: "Precipitation",
-  //           value: weatherData.hourly.precipitation[idx],
-  //           units: [{ metric: " mm", imperial: " in" }],
-  //         },
-  //       ]);
-
-  //       setDailyForecast(
-  //         Array.from({ length: 7 }).map((_, i) => ({
-  //           day: weatherData.daily.time[i],
-  //           icon: getWeatherIcon(weatherData.daily.weathercode[i]),
-  //           temp: {
-  //             max: weatherData.daily.temperature_2m_max[i],
-  //             min: weatherData.daily.temperature_2m_min[i],
-  //           },
-  //           description: getWeatherDescription(
-  //             weatherData.daily.weathercode[i]
-  //           ),
-  //         }))
-  //       );
-
-  //       console.log("1st", weatherData);
-  //       // console.log("2nd", curr);
-  //       // console.log("3rd", idx);
-  //       // console.log("4th", weatherData.daily);
-  //       // console.log("5th", weatherData.hourly);
-
-  //       setWeather(weatherData);
-  //     } catch (error) {
-  //       setError(error.message);
-  //     } finally {
-  //       setIsLoading(false);
-  //     }
-  //   }
-  //   fetchWeather();
-  // }, [searchCity, units]);
-
   useEffect(() => {
     if (!weather) return;
 
@@ -466,10 +376,6 @@ function App() {
     if (error) setSearchingAgain(false);
   }, [weather, error]);
 
-  // console.log("weather", weather);
-  console.log("error", error);
-  console.log("searchHistory", searchHistory);
-
   return (
     <>
       <SkeletonTheme baseColor="#202020" highlightColor="#444">
@@ -486,17 +392,19 @@ function App() {
             <SearchBar
               city={city}
               setCity={setCity}
+              searchCity={searchCity}
               setSearchCity={setSearchCity}
               weather={weather}
               searchingAgain={searchingAgain}
               setSearchingAgain={setSearchingAgain}
               error={error}
+              searchHistory={searchHistory}
             />
           </HeroSection>
         )}
         {error?.includes("City not found") && <NoResultMsg />}
 
-        {!error && (
+        {!error && weather && (
           <MainSection>
             <section className="weather-sec">
               <TodayWeatherCard
@@ -555,33 +463,47 @@ function HeroSection({ children }) {
 function SearchBar({
   city,
   setCity,
+  searchCity,
   setSearchCity,
   weather,
   searchingAgain,
   setSearchingAgain,
-  error,
+  searchHistory,
 }) {
   function handleSubmit(e) {
     e.preventDefault();
     if (city.trim() !== "") {
       setSearchCity(city);
-      if (weather) setSearchingAgain(true);
+      if (weather && city !== searchCity) setSearchingAgain(true);
     }
   }
 
   return (
     <form className="search-bar" onSubmit={handleSubmit}>
-      <img
-        className="search-icon"
-        src="./assets/images/icon-search.svg"
-        alt="search"
-      />
-      <input
-        type="text"
-        value={city}
-        onChange={(e) => setCity(e.target.value)}
-        placeholder="Search for a city..."
-      />
+      <div className="input">
+        <img
+          className="search-icon"
+          src="./assets/images/icon-search.svg"
+          alt="search"
+        />
+        <input
+          type="text"
+          value={city}
+          onChange={(e) => setCity(e.target.value)}
+          onFocus={() => {
+            if (searchHistory.length > 0) {
+              document.querySelector(".search-history").classList.add("show");
+            }
+          }}
+          onBlur={() => {
+            document.querySelector(".search-history").classList.remove("show");
+          }}
+          placeholder="Search for a city..."
+        />
+        {searchHistory.length > 0 && (
+          <SearchHistory searchHistory={searchHistory} setCity={setCity} />
+        )}
+      </div>
       <button type="submit" onClick={handleSubmit}>
         Search
       </button>
@@ -596,9 +518,6 @@ function MainSection({ children }) {
 
 function TodayWeatherCard({ place, weather, isLoading }) {
   const icon = getWeatherIcon(weather?.current_weather.weathercode);
-  // if (weather) console.log("icon", icon, weather.current_weather.weathercode);
-  // if (weather)
-  //   console.log(getWeatherDescription(weather.current_weather.weathercode));
 
   const today = new Date();
   const day = today.toLocaleDateString("en-US", {
@@ -607,7 +526,6 @@ function TodayWeatherCard({ place, weather, isLoading }) {
     day: "numeric",
     year: "numeric",
   });
-  // if (weather) console.log("inside", weather.current_weather.temperature);
   return (
     <div className={`today-weather-card ${isLoading ? "loading" : ""}`}>
       {isLoading || (
@@ -647,7 +565,6 @@ function TodayWeatherCard({ place, weather, isLoading }) {
 }
 
 function WeatherDetails({ weatherDetails, isImperial, isLoading }) {
-  // if (weatherDetails) console.log(weatherDetails[0].units.metric);
   return (
     <ul className="weather-details">
       {(isLoading || !weatherDetails) &&
@@ -666,10 +583,7 @@ function WeatherDetails({ weatherDetails, isImperial, isLoading }) {
         !isLoading &&
         weatherDetails.map((detail) => (
           <li className="detail-item" key={detail.label}>
-            <span className="detail-label">
-              {detail.label}
-              {/* {detail.units.metric} */}
-            </span>
+            <span className="detail-label">{detail.label}</span>
             <span className="detail-value">
               {detail.value}
               {isImperial ? detail.units[0].imperial : detail.units[0].metric}
@@ -680,9 +594,6 @@ function WeatherDetails({ weatherDetails, isImperial, isLoading }) {
   );
 }
 function DailyForecast({ dailyForecast, formatDate, isLoading }) {
-  // console.log(formatDate("2023-10-05"));
-  // if (dailyForecast) console.log(typeof dailyForecast, dailyForecast);
-
   return (
     <ul className="daily-forecast">
       {dailyForecast &&
@@ -748,7 +659,6 @@ function HourlyForecast({
   toggleMenu,
   isLoading,
 }) {
-  // if (hourlyForecast) console.log(typeof hourlyForecast, hourlyForecast);
   return (
     <aside>
       <div className="head">
@@ -843,6 +753,21 @@ function SearchInProgress({ searchingAgain }) {
     <div className={`search-in-progress  ${searchingAgain ? "searching" : ""}`}>
       <img src="./assets/images/icon-loading.svg" alt="searching" />
       <p>Search in progress</p>
+    </div>
+  );
+}
+
+function SearchHistory({ searchHistory, setCity }) {
+  return (
+    <div className="search-history">
+      <h5>Search History</h5>
+      <ul className="history-list">
+        {searchHistory.map((city, index) => (
+          <li key={index} onClick={() => setCity(city)}>
+            {city}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

@@ -31,11 +31,12 @@ body {
   color: var(--Neutral-0);
 }
 button {
-  all: unset;
+  background-color: transparent;
+  color: var(--Neutral-0);
   cursor: pointer;
 }
 input {
-  all: unset;
+  color: var(--Neutral-0);
 }
 ul {
   list-style: none;
@@ -47,11 +48,12 @@ header {
   align-items: center;
 }
 .hero-sec {
+  margin-top: 2rem;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 2rem;
+  gap: 4.2rem;
   padding: 1.8rem 0;
 
   h1 {
@@ -61,8 +63,6 @@ header {
   }
 
   form {
-    /* background-color: red; */
-    /* padding: 0.5rem; */
     width: 45%;
     display: flex;
     justify-content: space-between;
@@ -70,39 +70,53 @@ header {
     gap: 0.8rem;
     position: relative;
 
-    .search-icon {
-      position: absolute;
-      left: 1.5rem;
-      z-index: 3;
-    }
-
     input,
     button {
       padding: 0.75rem 1.2rem;
       border-radius: 0.7rem;
     }
 
-    input {
-      padding-left: 3.5rem;
+    .input {
       position: relative;
-      font-size: 1.2rem;
-      caret-color: var(--Neutral-300);
       flex: 1;
-      transition: background-color 0.3s;
-      border: 3px solid var(--Neutral-900);
-      background-color: var(--Neutral-800);
-      &:hover {
-        background-color: var(--Neutral-700);
+
+      .search-icon {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        left: 1.3rem;
+        z-index: 3;
       }
-      &::placeholder {
-        color: var(--Neutral-300);
-      }
-      &:focus {
-        outline: 3px solid var(--Neutral-0);
+
+      input {
+        border: none;
+        outline: none;
+        background-color: transparent;
+        width: 100%;
+        padding-left: 3.5rem;
+        position: relative;
+        font-size: 1.2rem;
+        caret-color: var(--Neutral-300);
+        transition: background-color 0.3s;
+        border: 3px solid var(--Neutral-900);
+        background-color: var(--Neutral-800);
+        &:hover {
+          background-color: var(--Neutral-700);
+        }
+        &::placeholder {
+          color: var(--Neutral-300);
+        }
+        &:focus {
+          outline: 3px solid var(--Neutral-0);
+        }
       }
     }
 
     button {
+      text-align: center;
+      font-size: 1.9rem;
+      color: var(--Neutral-0);
+      cursor: pointer;
       border: 3px solid var(--Neutral-900);
       background-color: var(--Blue-500);
       font-size: 1.1rem;
@@ -119,7 +133,6 @@ header {
       padding: 0.8rem 1.2rem;
       border: 2px solid var(--Neutral-600);
       background-color: var(--Neutral-800);
-      /* background-color: green; */
       position: absolute;
       top: 4rem;
       width: 100%;
@@ -154,6 +167,64 @@ header {
       p {
         font-size: 1.1rem;
         font-weight: 400;
+      }
+    }
+
+    .search-history {
+      transform: translateY(-13px);
+      visibility: hidden;
+      opacity: 0;
+      transition: all 0.5s;
+
+      position: absolute;
+      top: 4rem;
+      width: 100%;
+      background-color: var(--Neutral-800);
+      border: 2px solid var(--Neutral-600);
+      padding: 0.4rem;
+      border-radius: 0.7rem;
+      -webkit-border-radius: 0.7rem;
+      -moz-border-radius: 0.7rem;
+      -ms-border-radius: 0.7rem;
+      -o-border-radius: 0.7rem;
+      overflow-y: auto;
+      z-index: 5;
+      &.show {
+        visibility: visible;
+        opacity: 1;
+        transform: translateY(0);
+        -webkit-transform: translateY(0);
+        -moz-transform: translateY(0);
+        -ms-transform: translateY(0);
+        -o-transform: translateY(0);
+      }
+      h5 {
+        font-size: 1rem;
+        font-weight: 500;
+        padding: 0.3rem 0.4rem;
+        border-bottom: 1px solid var(--Neutral-600);
+        margin-bottom: 0.4rem;
+        color: var(--Neutral-300);
+      }
+      .history-list {
+        display: flex;
+        flex-direction: column;
+        justify-content: start;
+        gap: 0.4rem;
+
+        li {
+          padding: 0.5rem 1.2rem;
+          border-bottom: 1px solid var(--Neutral-600);
+          text-align: left;
+          border-radius: 0.3rem;
+          border: 2px solid transparent;
+          cursor: pointer;
+          transition: background-color 0.3s;
+          &:hover {
+            background-color: var(--Neutral-700);
+            border: 2px solid var(--Neutral-600);
+          }
+        }
       }
     }
   }
@@ -313,7 +384,6 @@ header {
 
   aside {
     background-color: var(--Neutral-800);
-    /* padding: 1.5rem; */
     height: 735.73px;
 
     border-radius: 1.2rem;
@@ -344,7 +414,6 @@ header {
         }
         .dropdown-menu {
           padding: 0.4rem;
-          /* background-color: red; */
           display: flex;
           flex-direction: column;
           gap: 0.3rem;
@@ -372,7 +441,6 @@ header {
     }
 
     .hours-list {
-      /* background-color: firebrick; */
       padding: 0.8rem 1.5rem;
       scrollbar-width: thin;
       scroll-behavior: smooth;
@@ -535,7 +603,6 @@ header {
   padding: 1rem;
 }
 .something-wrong {
-  /* background-color: red; */
   text-align: center;
   padding: 1rem;
   display: flex;
@@ -556,7 +623,6 @@ header {
   }
 
   p {
-    /* background-color: rebeccapurple; */
     width: 30%;
     color: var(--Neutral-200);
   }
@@ -567,8 +633,7 @@ header {
     display: flex;
     gap: 0.5rem;
     align-items: center;
-    /*border: 3px solid var(--Neutral-900);
-    */
+
     transition: background-color 0.3s;
     border-radius: 0.5rem;
     -webkit-border-radius: 0.5rem;
@@ -635,20 +700,16 @@ header {
     }
     form {
       flex-direction: column;
-      width: 78%;
+      width: 85%;
 
-      .search-icon {
-        left: -0.5rem;
-        top: 33px;
-        transform: translateY(-50%);
-        -webkit-transform: translateY(-50%);
-        -moz-transform: translateY(-50%);
-        -ms-transform: translateY(-50%);
-        -o-transform: translateY(-50%);
-      }
-      input,
+      .input,
       button {
         width: 100%;
+      }
+      .input {
+        .search-icon {
+          left: 1.3rem;
+        }
       }
       button {
         text-align: center;
@@ -728,10 +789,7 @@ header {
   }
   .hero-sec {
     form {
-      .search-icon {
-        top: 28px;
-      }
-      input,
+      .input,
       button {
         width: 92%;
       }

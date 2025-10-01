@@ -35,7 +35,7 @@ function UnitsDropdownMenu({
           value="imperial"
           onClick={handleSwitch}
         >
-          Switch to {isImperial ? "Metric" : "Imperial"}
+          Switch to {!isImperial ? "Metric" : "Imperial"}
         </button>
 
         {units.map((unit) => (

@@ -64,6 +64,8 @@ header {
   }
   form {
     gap: 0.8rem;
+    display: flex;
+    align-items: center;
     justify-content: space-between;
     position: relative;
     width: 45%;
@@ -138,6 +140,8 @@ header {
       border: 2px solid var(--Neutral-600);
       border-radius: 0.7rem;
       gap: 1rem;
+      display: flex;
+      align-items: center;
       justify-content: start;
       opacity: 0;
       padding: 0.8rem 1.2rem;

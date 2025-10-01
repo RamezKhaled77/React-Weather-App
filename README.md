@@ -1,70 +1,137 @@
-# Getting Started with Create React App
+# 🌤️ Weather Now
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A modern, responsive **React** weather application that allows users to search for any city and view real-time weather data. It includes accurate forecasts, error handling, search history, and a smooth user experience with keyboard accessibility.
 
-## Available Scripts
+---
 
-In the project directory, you can run:
+## 🚀 Features
 
-### `npm start`
+- **Search Weather by City**
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Enter any city name and get live weather updates instantly.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+- **Error Handling**
 
-### `npm test`
+- Invalid city → `No search results found`.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+- API error → `Something went wrong, please try again later`.
 
-### `npm run build`
+- **Search History**
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+Saves the last 5 searched cities in **localStorage** and shows them as suggestions when focusing on the input.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+- **Keyboard Accessibility**
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+- Navigate results with `Tab`.
 
-### `npm run eject`
+- Press `Enter` to select a focused item.
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+- Focus outlines only appear with keyboard (`:focus-visible`).
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+- **Responsive UI**
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+Optimized layout for desktop and mobile devices.
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+- **Unit System Toggle**
 
-## Learn More
+Switch easily between **Metric (°C, km/h)** and **Imperial (°F, mph)**.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+---
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## 🛠️ Technologies Used
 
-### Code Splitting
+- **React (Hooks, useState, useEffect)**
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+- **CSS (custom styles + focus-visible accessibility)**
 
-### Analyzing the Bundle Size
+- **Open-Meteo API** for weather & geocoding
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+- **LocalStorage** for storing search history
 
-### Making a Progressive Web App
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+## 🔧 Technical Details
 
-### Advanced Configuration
+- **Frontend Framework:** React.js
+- **Styling:** CSS (with responsive design)
+- **State Management:** React hooks (`useState`, `useEffect`)
+- **API Integration:** OpenWeatherMap API (for current, hourly, and daily forecast data)
+- **Features Implemented:**
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+  - Search for cities with API calls.
+  - Search history stored in **localStorage**.
+  - Error handling for invalid city names and API failures.
+  - Dropdown menu for switching between **units (°C / °F)**.
+  - Dropdown menu for selecting number of forecast days.
+  - Auto-focus outline only visible with **keyboard navigation** (better accessibility).
 
-### Deployment
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+## 📂 Project Structure
 
-### `npm run build` fails to minify
+src/
+├── components/
+│ ├── DailyForecast.js # Displays daily weather forecast
+│ ├── DaysDropdownMenu.js # Dropdown for choosing forecast days
+│ ├── Header.js # Top navigation/header
+│ ├── HourlyForecast.js # Displays hourly weather forecast
+│ ├── SearchBar.js # Input field for city search
+│ ├── SearchHistory.js # Shows previously searched cities
+│ ├── SearchInProgress.js # Loading indicator for ongoing searches
+│ ├── TodayWeatherCard.js # Displays today's weather
+│ ├── UnitsDropdownMenu.js # Dropdown for units (Celsius / Fahrenheit)
+│ ├── WeatherDetails.js # Extra details (humidity, wind, etc.)
+│
+├── App.js # Main application wrapper
+├── index.css # Global styling
+├── index.js # Entry point
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+---
+
+## 📊 Work Flow Chart
+
+<img src="./public/assets/images/weather_app_flowchart.png" alt="flow chart">
+
+## ▶️ Getting Started
+
+### 1. Clone the repository
+
+`git clone https://github.com:RamezKhaled77/React-Weather-App.git`
+
+### 2. Navigate into the project
+
+`cd React-Weather-App`
+
+### 3. Install dependencies
+
+`npm install`
+
+### 4. Run the project
+
+`npm start`
+
+The app will run on [http://localhost:3000](http://localhost:3000).
+
+---
+
+## 🧪 Testing the App
+
+- ✅ Type a **valid city name** → should return weather info.
+
+- ❌ Type an **invalid city name** → should display `No search results found`.
+
+- 🔌 Simulate **API error** (disable internet or change API URL) → should display error page.
+
+- ⌨️ Use `Tab` + `Enter` → full keyboard accessibility.
+
+- 📜 Search a few cities → reopen app and see them in search history.
+
+---
+
+## 🔮 Future Improvements
+
+- Add **multi-language support**
+
+- Add **dark/light mode switch**
+
+- Add **location-based auto-detection**

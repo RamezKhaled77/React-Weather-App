@@ -69,7 +69,7 @@ Switch easily between **Metric (°C, km/h)** and **Imperial (°F, mph)**.
 
 ## 📂 Project Structure
 
-src/
+```src/
 ├── components/
 │ ├── DailyForecast.js # Displays daily weather forecast
 │ ├── DaysDropdownMenu.js # Dropdown for choosing forecast days
@@ -85,6 +85,7 @@ src/
 ├── App.js # Main application wrapper
 ├── index.css # Global styling
 ├── index.js # Entry point
+```
 
 ---
 

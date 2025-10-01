@@ -26,6 +26,9 @@
   font-family: "DM Sans", sans-serif;
   font-size: 18px;
 }
+*:focus {
+  outline: none;
+}
 body {
   background-color: var(--Neutral-900);
   color: var(--Neutral-0);
@@ -34,6 +37,8 @@ button {
   background-color: transparent;
   color: var(--Neutral-0);
   cursor: pointer;
+  border: none;
+  outline: none;
 }
 input {
   color: var(--Neutral-0);
@@ -106,7 +111,7 @@ header {
         &::placeholder {
           color: var(--Neutral-300);
         }
-        &:focus {
+        &:focus-visible {
           outline: 3px solid var(--Neutral-0);
         }
       }
@@ -124,7 +129,7 @@ header {
       &:hover {
         background-color: var(--Blue-700);
       }
-      &:focus {
+      &:focus-visible {
         outline: 3px solid var(--Blue-500);
       }
     }
@@ -431,7 +436,7 @@ header {
             &:hover {
               background-color: var(--Neutral-700);
             }
-            &:focus {
+            &:focus-visible {
               border-color: var(--Neutral-900);
               outline: 2px solid var(--Neutral-0);
             }
@@ -509,7 +514,7 @@ header {
     -moz-border-radius: 0.5rem;
     -ms-border-radius: 0.5rem;
     -o-border-radius: 0.5rem;
-    &:focus {
+    &:focus-visible {
       border-color: var(--Neutral-900);
       outline: 3px solid var(--Neutral-0);
     }
@@ -555,7 +560,7 @@ header {
       &:hover {
         background-color: var(--Neutral-700);
       }
-      &:focus {
+      &:focus-visible {
         border-color: var(--Neutral-900);
 
         outline: 2px solid var(--Neutral-0);

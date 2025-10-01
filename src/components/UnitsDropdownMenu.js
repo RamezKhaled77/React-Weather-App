@@ -35,7 +35,7 @@ function UnitsDropdownMenu({
           value="imperial"
           onClick={handleSwitch}
         >
-          Switch to {!isImperial ? "Metric" : "Imperial"}
+          Switch to {isImperial ? "Metric" : "Imperial"}
         </button>
 
         {units.map((unit) => (
@@ -83,15 +83,15 @@ function DropdownSection({ secLabel, metricVal, imperialVal, isImperial }) {
   return (
     <div className="dropdown-section">
       <h6 className="dropdown-label">{secLabel}</h6>
-      <div className={`dropdown-item ${isImperial ? "selected" : ""}`}>
+      <div className={`dropdown-item ${!isImperial ? "selected" : ""}`}>
         {metricVal}
-        {isImperial && (
+        {!isImperial && (
           <img src="./assets/images/icon-checkmark.svg" alt="selected" />
         )}
       </div>
-      <div className={`dropdown-item ${!isImperial ? "selected" : ""}`}>
+      <div className={`dropdown-item ${isImperial ? "selected" : ""}`}>
         {imperialVal}
-        {!isImperial && (
+        {isImperial && (
           <img src="./assets/images/icon-checkmark.svg" alt="selected" />
         )}
       </div>
